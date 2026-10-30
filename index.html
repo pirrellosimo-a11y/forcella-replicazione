@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forcella di replicazione</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: palco scuro-chiaro con la forcella a destra, pannello enzimi sotto, tutto in una colonna. */
+:root{
+  --bg:#EEF2F6; --panel:#FFFFFF; --ink:#13202D; --mute:#5A6B7C; --line:#D5DDE5;
+  --sa:#3B3FA8; --sb:#16707A; --n1:#E69A00; --n2:#9C6B00;
+  --bA:#E4795B; --bT:#EFC04F; --bG:#4FA3E0; --bC:#62BB8A;
+  --e-heli:#8A3FC8; --e-topo:#5D6F85; --e-ssb:#7E9418; --e-prim:#C2185B;
+  --e-p3:#E4572E; --e-p1:#2A84D6; --e-lig:#26995A;
+  --accent:#E4572E; --accent-ink:#FFFFFF;
+  --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C141D; --panel:#131E2A; --ink:#E7EEF5; --mute:#93A4B6; --line:#243445;
+  --sa:#7C85F2; --sb:#39B8C4; --n1:#F2A900; --n2:#FFE08A;
+  --bA:#EE8A6E; --bT:#F2CB6A; --bG:#66B2EA; --bC:#79CB9B;
+  --e-heli:#B07CE8; --e-topo:#8CA0B8; --e-ssb:#A5BC3A; --e-prim:#F0549A;
+  --e-p3:#FF7048; --e-p1:#55A6F0; --e-lig:#3CC27E;
+  --accent:#FF7048; --accent-ink:#1A0D08; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C141D; --panel:#131E2A; --ink:#E7EEF5; --mute:#93A4B6; --line:#243445;
+  --sa:#7C85F2; --sb:#39B8C4; --n1:#F2A900; --n2:#FFE08A;
+  --bA:#EE8A6E; --bT:#F2CB6A; --bG:#66B2EA; --bC:#79CB9B;
+  --e-heli:#B07CE8; --e-topo:#8CA0B8; --e-ssb:#A5BC3A; --e-prim:#F0549A;
+  --e-p3:#FF7048; --e-p1:#55A6F0; --e-lig:#3CC27E;
+  --accent:#FF7048; --accent-ink:#1A0D08; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4vw,38px);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{margin:6px 0 0;color:var(--mute);max-width:62ch}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow-x:auto}
+.stage-in{min-width:760px}
+#cv{display:block;width:100%;height:auto;aspect-ratio:1000/560;
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 80px);mask-image:linear-gradient(to right,transparent 0,#000 80px)}
+.bar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 14px;min-height:40px}
+button:hover{border-color:var(--mute)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+:focus-visible{outline:3px solid var(--sa);outline-offset:2px}
+.spd{display:flex;align-items:center;gap:8px;color:var(--mute);font-size:14px}
+.spd input{width:130px;accent-color:var(--accent)}
+.spd output{min-width:3ch;font-variant-numeric:tabular-nums;color:var(--ink)}
+.now{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.now div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel);min-width:0;transition:border-color .2s}
+.now div.on{border-color:var(--accent)}
+.now b{display:block;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute);margin-bottom:2px}
+.now p{margin:0;font-size:14px}
+h2{font-family:var(--f-display);font-size:20px;margin:6px 0 0}
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.legend button{display:flex;gap:12px;text-align:left;align-items:flex-start;font-weight:400;padding:12px}
+.legend i{flex:none;width:14px;height:14px;border-radius:50%;margin-top:4px;background:var(--c)}
+.legend strong{display:block;font-weight:600}
+.legend span{display:block;color:var(--mute);font-size:14px;min-width:0}
+.legend button[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 12%,var(--panel))}
+.note{color:var(--mute);font-size:13px;max-width:80ch}
+@media (max-width:700px){.now{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.now div{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>La forcella di replicazione</h1>
+    <p class="sub">Il DNA si apre e ogni filamento viene copiato. I riquadri sotto l'animazione seguono ciò che accade momento per momento: il tratteggio nero indica l'enzima da guardare. Per fermarti su un enzima, cliccalo nell'elenco in fondo.</p>
+  </header>
+
+  <div class="stage"><div class="stage-in"><canvas id="cv" aria-label="Animazione della forcella di replicazione del DNA con enzimi, filamento veloce e frammenti di Okazaki" role="img"></canvas></div></div>
+
+  <div class="bar">
+    <button id="play" class="primary" type="button">Pausa</button>
+    <button id="reset" type="button">Ricomincia</button>
+    <button id="d53" type="button" aria-pressed="false">Mostra 5′ e 3′</button>
+    <label class="spd" for="spd">Velocità <input id="spd" type="range" min="0.25" max="2" step="0.25" value="1"><output id="spdv">1×</output></label>
+  </div>
+
+  <div class="now" aria-live="polite">
+    <div id="n-lead"><b>Filamento veloce · copia continua</b><p>La polimerasi III (in alto) segue l'elicasi: appena il filamento stampo si libera, aggiunge nucleotidi all'estremità 3′ del nuovo filamento. Il verso 5′→3′ coincide con quello della forcella, quindi non si ferma mai e basta un solo primer.</p></div>
+    <div id="n-lag"><b id="t-lag">Filamento lento</b><p id="lagtxt"></p></div>
+    <div id="n-mat"><b id="t-mat">Più indietro</b><p id="mattxt"></p></div>
+  </div>
+
+  <h2>Chi è chi</h2>
+  <div class="legend" id="legend"></div>
+  <p class="note">I nomi degli enzimi sono quelli dei batteri (E. coli), dove il processo è studiato meglio. Nelle cellule eucariote il meccanismo è lo stesso, ma alcune polimerasi hanno nomi diversi (α, δ, ε).</p>
+</div>
+<script>
+/* ---------- Geometria ----------
+   s = distanza dalla giunzione della forcella (s>0: lato figlio, s<0: DNA parentale).
+   La forcella avanza verso destra; F è la sua posizione nel "mondo" del DNA. */
+const W=1000,H=560,CY=280,JX=700;
+const D=130,PL=24,LP=100,RD=230,SD=430,GAP=17,V0=30;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let F=4.35*D,playing=true,speed=1,show53=false,hl=null,T=0,C={},FONT='sans-serif',lastTheme=-1e9;
+
+function fit(){const r=Math.min(2,window.devicePixelRatio||1);cv.width=W*r;cv.height=H*r;ctx.setTransform(r,0,0,r,0,0)}
+function readTheme(){
+  const cs=getComputedStyle(document.documentElement),g=n=>cs.getPropertyValue(n).trim();
+  C={panel:g('--panel'),ink:g('--ink'),mute:g('--mute'),line:g('--line'),sa:g('--sa'),sb:g('--sb'),n1:g('--n1'),n2:g('--n2'),
+     b:[g('--bA'),g('--bT'),g('--bG'),g('--bC')],
+     heli:g('--e-heli'),topo:g('--e-topo'),ssb:g('--e-ssb'),prim:g('--e-prim'),p3:g('--e-p3'),p1:g('--e-p1'),lig:g('--e-lig')};
+  FONT=getComputedStyle(document.body).fontFamily;
+}
+const rnd=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+const base=i=>Math.floor(rnd(i)*4);          /* 0 A, 1 T, 2 G, 3 C; complementare = b^1 */
+const th=wx=>2*Math.PI*wx/64;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+
+/* scostamento verticale del filamento "alto" rispetto all'asse */
+function off(s){
+  const sn=12*Math.sin(th(F-s));
+  if(s<=0)return sn;
+  const t=Math.min(1,s/50);
+  return sn*(1-t)+(12+.75*Math.min(s,200))*t;
+}
+const topY=s=>CY-off(s), botY=s=>CY+off(s), X=s=>JX-s;
+
+/* ---------- Primitive di disegno ---------- */
+function strand(fy,s0,s1,col,w){
+  ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+  for(let s=s0;s<=s1+.01;s+=5){const x=X(s),y=fy(s);s===s0?ctx.moveTo(x,y):ctx.lineTo(x,y)}
+  ctx.stroke();
+}
+/* pioli tra due filamenti; ogni metà ha il colore della propria base */
+function rungs(s0,s1,fa,fb,baseA){
+  const i0=Math.ceil((F-s1)/12),i1=Math.floor((F-s0)/12);
+  ctx.lineWidth=3;ctx.lineCap='butt';
+  for(let i=i0;i<=i1;i++){
+    const s=F-i*12,ya=fa(s),yb=fb(s);
+    if(Math.abs(ya-yb)<5)continue;
+    const bA=baseA(i),x=X(s),ym=(ya+yb)/2;
+    ctx.strokeStyle=C.b[bA];ctx.beginPath();ctx.moveTo(x,ya);ctx.lineTo(x,ym);ctx.stroke();
+    ctx.strokeStyle=C.b[bA^1];ctx.beginPath();ctx.moveTo(x,ym);ctx.lineTo(x,yb);ctx.stroke();
+  }
+}
+function tag(text,x,y,col,align){
+  ctx.font='600 13px '+FONT;const w=ctx.measureText(text).width+16,h=22;
+  let x0=align==='l'?x:align==='r'?x-w:x-w/2;
+  ctx.fillStyle=C.panel;ctx.strokeStyle=col;ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.roundRect(x0,y-h/2,w,h,6);ctx.fill();ctx.stroke();
+  ctx.fillStyle=C.ink;ctx.textBaseline='middle';ctx.textAlign='left';ctx.fillText(text,x0+8,y+.5);
+}
+function arrow(x0,x1,y,col){
+  const d=Math.sign(x1-x0);ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1-d*5,y);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x1-d*9,y-5);ctx.lineTo(x1-d*9,y+5);ctx.closePath();ctx.fill();
+}
+function end53(t,x,y){ctx.font='700 14px ui-monospace,Menlo,monospace';
+  ctx.fillStyle=C.panel;ctx.strokeStyle=C.mute;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(x-11,y-10,22,20,6);ctx.fill();ctx.stroke();
+  ctx.fillStyle=C.ink;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x,y+.5)}
+
+/* ---------- Enzimi ---------- */
+const E={};  /* posizioni correnti per l'evidenziazione */
+function polShape(x,y,col,a,dir,down){
+  ctx.save();ctx.translate(x,y);if(down)ctx.scale(1,-1);ctx.globalAlpha=a;ctx.fillStyle=col;ctx.strokeStyle=C.panel;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.ellipse(0,0,27,21,0,0,7);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(dir*11,-19,12,9,0,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(0,3,17,4,0,0,7);ctx.fill();ctx.restore();
+}
+function helicase(x,y){
+  ctx.save();ctx.translate(x,y);ctx.strokeStyle=C.heli;ctx.lineWidth=8;
+  ctx.beginPath();ctx.ellipse(0,0,15,30,0,0,7);ctx.stroke();
+  ctx.fillStyle=C.heli;ctx.strokeStyle=C.panel;ctx.lineWidth=2;
+  for(let k=0;k<6;k++){const a=T*1.6+k*Math.PI/3;ctx.beginPath();ctx.arc(15*Math.cos(a),30*Math.sin(a),4.5,0,7);ctx.fill();ctx.stroke()}
+  ctx.restore();
+}
+function topo(x,y){
+  const gap=.25+.55*(.5+.5*Math.sin(T*2.2));
+  ctx.save();ctx.translate(x,y);ctx.strokeStyle=C.topo;ctx.lineWidth=8;ctx.lineCap='round';
+  ctx.beginPath();ctx.ellipse(0,0,15,32,0,-Math.PI/2+gap,3*Math.PI/2-gap);ctx.stroke();ctx.restore();
+}
+function ssb(x,y){ctx.fillStyle=C.ssb;ctx.strokeStyle=C.panel;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();ctx.stroke()}
+function primase(x,y,a){
+  ctx.save();ctx.globalAlpha=a;ctx.fillStyle=C.prim;ctx.strokeStyle=C.panel;ctx.lineWidth=2.5;ctx.beginPath();
+  for(let k=0;k<6;k++){const an=k*Math.PI/3+Math.PI/6;ctx.lineTo(x+17*Math.cos(an),y+17*Math.sin(an))}
+  ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+}
+function pol1(x,y){
+  const m=.25+.35*Math.abs(Math.sin(T*3.5));
+  ctx.save();ctx.translate(x,y);ctx.fillStyle=C.p1;ctx.strokeStyle=C.panel;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,22,Math.PI+m,Math.PI-m+2*Math.PI,false);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+}
+function ligase(x,y){
+  ctx.save();ctx.translate(x,y);ctx.fillStyle=C.lig;ctx.strokeStyle=C.panel;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.roundRect(-17,-17,34,34,9);ctx.fill();ctx.stroke();
+  ctx.strokeStyle=C.panel;ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(9,0);ctx.stroke();ctx.restore();
+}
+function ring(x,y,r){
+  const k=.5+.5*Math.sin(T*5);
+  ctx.save();ctx.strokeStyle=C.ink;ctx.lineWidth=3;ctx.globalAlpha=.9;ctx.setLineDash([7,5]);
+  ctx.beginPath();ctx.ellipse(x,y,r+8+k*4,r*.8+8+k*4,0,0,7);ctx.stroke();ctx.restore();
+}
+/* ---------- Fotogramma ---------- */
+let RT=0;
+function frame(){
+  ctx.clearRect(0,0,W,H);
+  const kk=Math.floor(F/D),ph=F/D-kk,sk0=ph*D+36;
+  const lowY=s=>botY(s), lowN=s=>botY(s)-GAP, upN=s=>topY(s)+GAP;
+  const comp=i=>base(i)^1;
+  for(const k in E)delete E[k];
+
+  /* DNA parentale e filamenti stampo */
+  rungs(-300,-4,topY,botY,i=>base(i));
+  strand(topY,-300,720,C.sa,5);
+  strand(botY,-300,720,C.sb,5);
+
+  /* filamento veloce: sintesi continua */
+  rungs(LP,720,topY,upN,i=>base(i));
+  strand(upN,LP,720,C.n1,5);
+
+  /* filamento lento: primer e frammenti di Okazaki */
+  for(let j=0;j<=4;j++){
+    const sk=sk0+j*D;
+    const pl=j===0?PL*clamp(ph/.1,0,1):PL;
+    const g=j===0?(D-PL)*clamp((ph-.2)/.8,0,1):D-PL;
+    const col=j%2===0?C.n1:C.n2, colPrev=(j-1)%2===0?C.n1:C.n2;
+    const rep=j===0?0:PL*clamp((sk-RD)/(2*PL),0,1);
+    if(g>0){
+      rungs(sk+PL,sk+PL+g,lowY,lowN,comp);
+      if(hl==='oka'){ctx.globalAlpha=.35;strand(lowN,sk+PL,sk+PL+g,C.ink,12);ctx.globalAlpha=1}
+      strand(lowN,sk+PL,sk+PL+g,col,5);
+    }
+    if(pl>0){
+      rungs(sk,sk+pl,lowY,lowN,comp);
+      if(hl==='rna'){ctx.globalAlpha=.35;strand(lowN,sk,sk+pl,C.ink,12);ctx.globalAlpha=1}
+      if(rep<pl)strand(lowN,sk+rep,sk+pl,C.prim,5);
+      if(rep>0)strand(lowN,sk,sk+rep,colPrev,5);
+      if(j>0&&rep>=PL&&sk+PL<SD){ctx.strokeStyle=C.panel;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(X(sk+PL),lowN(sk+PL)-5);ctx.lineTo(X(sk+PL),lowN(sk+PL)+5);ctx.stroke()}
+    }
+  }
+
+  /* SSB */
+  const beads=(a,b,f)=>{for(let s=a+8;s<b-4;s+=17)ssb(X(s),f(s))};
+  beads(0,LP-20,topY);
+  beads(0,sk0,botY);
+  beads(sk0+PL+(D-PL)*clamp((ph-.2)/.8,0,1),sk0+D,botY);
+  E.ssb=[{x:X(40),y:topY(40),r:12}];
+
+  /* topoisomerasi e elicasi */
+  topo(X(-210),CY);E.topo=[{x:X(-210),y:CY,r:32}];
+  helicase(X(-8),CY);E.heli=[{x:X(-8),y:CY,r:30}];
+
+  /* primasi */
+  const pa=ph<.12?1:.35;
+  const yPr=botY(36)-GAP-26;primase(X(36),yPr,pa);E.prim=[{x:X(36),y:yPr,r:18}];
+
+  /* polimerasi III: sta fuori dallo stampo, così il nuovo filamento resta sempre visibile */
+  const lx=X(LP),ly=topY(LP)-27;
+  let spol,alpha=1,lift=0;
+  if(ph<.2){const u=ease(ph/.2),from=sk0+2*D,to=sk0+PL;spol=from+(to-from)*u;const b=Math.sin(u*Math.PI);lift=b*30;alpha=1-.45*b}
+  else spol=sk0+PL+(D-PL)*clamp((ph-.2)/.8,0,1);
+  const px=X(spol),py=botY(spol)+27+lift;
+  /* punta 3′ in crescita dei due nuovi filamenti */
+  const tipS=sk0+PL*clamp(ph/.1,0,1)+(D-PL)*clamp((ph-.2)/.8,0,1);
+  for(const [tx,ty] of [[X(LP),upN(LP)],[X(tipS),lowN(tipS)]]){ctx.fillStyle=C.panel;ctx.strokeStyle=C.ink;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(tx,ty,5.5,0,7);ctx.fill();ctx.stroke()}
+  polShape(lx,ly,C.p3,1,-1,false);
+  polShape(px,py,C.p3,alpha,1,true);
+  E.p3=[{x:lx,y:ly,r:28},{x:px,y:py,r:28}];E.p3d=[{x:lx,y:ly,r:28}];E.p3l=[{x:px,y:py,r:28}];
+
+  /* polimerasi I e ligasi */
+  const x1=X(RD+PL+4),y1=botY(RD+PL+4)-GAP-27;pol1(x1,y1);E.p1=[{x:x1,y:y1,r:22}];
+  const x2=X(SD),y2=botY(SD)-GAP-24;ligase(x2,y2);E.lig=[{x:x2,y:y2,r:19}];
+
+  /* etichette */
+  tag('Topoisomerasi',X(-210),CY-60,C.topo,'c');
+  tag('Elicasi',JX+34,CY-46,C.heli,'l');
+  const bx=X(24),by=topY(24);
+  ctx.strokeStyle=C.ssb;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(bx,by-6);ctx.lineTo(bx,by-34);ctx.stroke();
+  tag('SSB',bx,by-45,C.ssb,'c');
+  tag('DNA polimerasi III',lx,ly-36,C.p3,'c');
+  tag('DNA polimerasi III',px,py+37,C.p3,'c');
+  tag('Primasi',X(36)-24,yPr,C.prim,'r');
+  tag('DNA polimerasi I',x1,y1-37,C.p1,'c');
+  tag('DNA ligasi',x2,y2-34,C.lig,'c');
+
+  /* frecce di direzione */
+  arrow(lx-14,lx+16,ly-1,C.panel);
+  arrow(px+14,px-16,py+1,C.panel);
+  arrow(JX+60,JX+210,CY+78,C.mute);
+  ctx.font='12px '+FONT;ctx.fillStyle=C.mute;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('la forcella avanza',JX+135,CY+94);
+
+  /* estremità 5′ e 3′ */
+  if(show53){
+    end53('3′',X(585),topY(585)-14);end53('5′',X(-292),topY(-292)-16);
+    end53('5′',X(585),botY(585)+16);end53('3′',X(-292),botY(-292)+16);
+    end53('5′',X(585),upN(585)+19);end53('3′',X(LP),upN(LP)+20);
+    end53('3′',X(tipS),lowN(tipS)-20);
+    if(ph>.15)end53('5′',X(sk0),lowN(sk0)-20);
+    end53('5′',X(sk0+D),lowN(sk0+D)-20);end53('3′',X(sk0+2*D),lowN(sk0+2*D)-20);
+  }
+
+  /* passo corrente: guida testi ed evidenziazione */
+  const lagStep=ph<.1?0:ph<.2?1:ph<.9?2:3,lagKey=lagStep===0?'prim':'p3l';
+  let matStep=0,matKey=null;
+  for(let j=1;j<=4;j++){const sk=sk0+j*D,rep=PL*clamp((sk-RD)/(2*PL),0,1);
+    if(rep>0&&rep<PL){matStep=1;matKey='p1'}
+    else if(matStep===0&&sk+PL>SD-34&&sk+PL<SD+12){matStep=2;matKey='lig'}}
+  const keys=hl?[hl]:[lagKey,matKey].filter(Boolean),kp=.5+.5*Math.sin(RT*6);
+  for(const key of keys)for(const e of (E[key]||[])){ctx.save();ctx.strokeStyle=C.ink;ctx.lineWidth=3;ctx.setLineDash([7,5]);
+    ctx.beginPath();ctx.ellipse(e.x,e.y,e.r+8+kp*4,e.r*.85+8+kp*4,0,0,7);ctx.stroke();ctx.restore()}
+  const sig=lagStep+'.'+matStep;
+  if(sig!==lastSig){lastSig=sig;
+    tLag.textContent=LAG[lagStep][0];lagtxt.textContent=LAG[lagStep][1];
+    tMat.textContent=MAT[matStep][0];mattxt.textContent=MAT[matStep][1]}
+  if(!hl){nLag.classList.add('on');nMat.classList.toggle('on',matStep>0);nLead.classList.remove('on')}
+}
+
+/* ---------- Interfaccia ---------- */
+const lagtxt=document.getElementById('lagtxt'),mattxt=document.getElementById('mattxt'),tLag=document.getElementById('t-lag'),tMat=document.getElementById('t-mat');
+const nLead=document.getElementById('n-lead'),nLag=document.getElementById('n-lag'),nMat=document.getElementById('n-mat');
+let lastSig='';
+const LAG=[
+ ['Filamento lento · passo 1 di 4 · nasce un primer','La DNA polimerasi non sa iniziare da zero. La primasi (l\'esagono rosa) costruisce un breve tratto di RNA, il primer, complementare al filamento stampo. Guarda come si allunga in rosa.'],
+ ['Filamento lento · passo 2 di 4 · la polimerasi torna indietro','La polimerasi III ha finito il frammento precedente: si stacca (diventa trasparente) e corre verso la forcella per agganciarsi all\'estremità 3′ del nuovo primer.'],
+ ['Filamento lento · passo 3 di 4 · cresce il frammento di Okazaki','Aggiunge un nucleotide alla volta (A con T, G con C), sempre in direzione 5′→3′. Su questo filamento 5′→3′ vuol dire allontanarsi dalla forcella: per questo la polimerasi va verso sinistra mentre la forcella va verso destra.'],
+ ['Filamento lento · passo 4 di 4 · frammento completo','La polimerasi ha raggiunto il primer del frammento precedente e si ferma. Tra poco si staccherà e ripartirà da un nuovo primer: ecco perché il filamento lento viene copiato a pezzi.']
+];
+const MAT=[
+ ['Più indietro · in attesa','Man mano che si allontanano dalla forcella, i frammenti arrivano alla polimerasi I (in blu): elimina il primer di RNA e lo sostituisce con DNA. Poi i tagli tra i frammenti arrivano alla ligasi (in verde), che li salda.'],
+ ['Più indietro · la polimerasi I sostituisce un primer','Guarda il primer rosa sotto la polimerasi I (la bocca che si apre): viene tolto un nucleotide alla volta e rimpiazzato da DNA, che prende il colore del frammento accanto.'],
+ ['Più indietro · la ligasi salda un taglio','Dopo la sostituzione resta un piccolo taglio (la lineetta bianca) tra due frammenti. La ligasi forma il legame che manca nello scheletro zucchero-fosfato e li unisce in un solo filamento.']
+];
+const ENZ=[
+ {k:'heli',n:'Elicasi',c:'--e-heli',t:'Rompe i legami a idrogeno tra le basi e apre la doppia elica: così nasce la forcella.'},
+ {k:'topo',n:'Topoisomerasi',c:'--e-topo',t:'Taglia e risalda il DNA davanti alla forcella per sciogliere la tensione che si accumula mentre l\'elica si svolge.'},
+ {k:'ssb',n:'Proteine SSB',c:'--e-ssb',t:'Ricoprono i filamenti separati e impediscono che si richiudano uno sull\'altro.'},
+ {k:'prim',n:'Primasi',c:'--e-prim',t:'Costruisce un breve primer di RNA. La DNA polimerasi non sa iniziare da zero: parte da qui.'},
+ {k:'p3',n:'DNA polimerasi III',c:'--e-p3',t:'Aggiunge nucleotidi complementari, sempre in direzione 5′→3′. Copia in modo continuo il filamento veloce e a pezzi quello lento.'},
+ {k:'p1',n:'DNA polimerasi I',c:'--e-p1',t:'Elimina i primer di RNA e riempie lo spazio con nucleotidi di DNA.'},
+ {k:'lig',n:'DNA ligasi',c:'--e-lig',t:'Salda tra loro i frammenti, completando lo scheletro zucchero-fosfato del filamento lento.'},
+ {k:'oka',n:'Frammenti di Okazaki',c:'--n1',t:'Tratti brevi di DNA sintetizzati sul filamento lento, ognuno a partire dal proprio primer.'},
+ {k:'rna',n:'Primer di RNA',c:'--e-prim',t:'Piccoli inneschi di RNA, temporanei: vengono sostituiti da DNA.'}
+];
+const leg=document.getElementById('legend');
+ENZ.forEach(e=>{
+  const b=document.createElement('button');b.type='button';b.setAttribute('aria-pressed','false');b.style.setProperty('--c','var('+e.c+')');
+  b.innerHTML='<i></i><div><strong></strong><span></span></div>';
+  b.querySelector('strong').textContent=e.n;b.querySelector('span').textContent=e.t;
+  b.addEventListener('click',()=>{hl=hl===e.k?null:e.k;
+    leg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    if(hl)b.setAttribute('aria-pressed','true');
+    const on={p3:['n-lead','n-lag'],prim:['n-lag'],oka:['n-lag'],rna:['n-lag','n-mat'],p1:['n-mat'],lig:['n-mat']}[hl]||[];
+    ['n-lead','n-lag','n-mat'].forEach(id=>document.getElementById(id).classList.toggle('on',on.includes(id)));
+    if(!playing)frame();
+  });
+  leg.appendChild(b);
+});
+const play=document.getElementById('play');
+function setPlay(p){playing=p;play.textContent=p?'Pausa':'Avvia'}
+play.addEventListener('click',()=>setPlay(!playing));
+document.getElementById('reset').addEventListener('click',()=>{F=4.35*D;if(!playing)frame()});
+const b53=document.getElementById('d53');
+b53.addEventListener('click',()=>{show53=!show53;b53.setAttribute('aria-pressed',String(show53));if(!playing)frame()});
+const spd=document.getElementById('spd'),spdv=document.getElementById('spdv');
+spd.addEventListener('input',()=>{speed=+spd.value;spdv.textContent=speed+'×'});
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();setPlay(!playing)}});
+
+fit();readTheme();
+try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setPlay(false)}catch(e){}
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;RT=now/1000;
+  if(now-lastTheme>400){readTheme();lastTheme=now}
+  if(playing){F+=V0*speed*dt;T+=dt}
+  frame();requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+
+</html>
